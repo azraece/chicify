@@ -6,185 +6,90 @@ import { useRouter } from 'next/navigation';
 
 export default function SignUp() {
   const router = useRouter();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    name: ''
+  });
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      firstName: formData.get('firstName'),
-      lastName: formData.get('lastName'),
-      username: formData.get('username'),
-      phone: formData.get('phone'),
-      email: formData.get('email'),
-      password: formData.get('password'),
-      confirmPassword: formData.get('confirmPassword'),
-    };
-
-    if (data.password !== data.confirmPassword) {
-      setError('Şifreler eşleşmiyor');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const res = await fetch('/api/auth/signup', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(formData)
       });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.error || 'Bir hata oluştu');
-      }
-
-      router.push('/login?registered=true');
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error);
+      
+      router.push('/login');
     } catch (err: any) {
       setError(err.message);
-    } finally {
-      setLoading(false);
     }
-  }
+  };
 
   return (
-    <main className="min-h-screen bg-white flex items-center justify-center">
-      <div className="w-full max-w-md p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-alex-brush text-red-600 mb-2">Chicify</h1>
-          <p className="text-gray-600">Şıklığı yaşam tarzı haline getirenler için</p>
-        </div>
-
+    <main className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-lg">
+        <h1 className="text-2xl font-bold text-center mb-8">Kayıt Ol</h1>
+        
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-600 rounded-lg text-sm">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-                Ad
-              </label>
-              <input
-                type="text"
-                id="firstName"
-                name="firstName"
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-red-500"
-                placeholder="Adınız"
-              />
-            </div>
-            <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-                Soyad
-              </label>
-              <input
-                type="text"
-                id="lastName"
-                name="lastName"
-                required
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-red-500"
-                placeholder="Soyadınız"
-              />
-            </div>
-          </div>
-
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-              Kullanıcı Adı
-            </label>
+            <label className="block text-sm font-bold text-gray-700">Ad Soyad</label>
             <input
               type="text"
-              id="username"
-              name="username"
               required
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-red-500"
-              placeholder="Kullanıcı adınız"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
             />
           </div>
 
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-              Telefon Numarası
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              required
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-red-500"
-              placeholder="05XX XXX XX XX"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              E-posta
-            </label>
+            <label className="block text-sm font-bold text-gray-700">Email</label>
             <input
               type="email"
-              id="email"
-              name="email"
               required
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-red-500"
-              placeholder="ornek@email.com"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Şifre
-            </label>
+            <label className="block text-sm font-bold text-gray-700">Şifre</label>
             <input
               type="password"
-              id="password"
-              name="password"
               required
-              minLength={6}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-red-500"
-              placeholder="••••••••"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+              value={formData.password}
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
             />
           </div>
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Şifre Tekrar
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              required
-              minLength={6}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-red-500"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <button 
+          <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-red-600 text-white py-3 rounded-full hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700"
           >
-            {loading ? 'Kaydediliyor...' : 'Kaydol'}
+            Kayıt Ol
           </button>
-
-          <div className="text-center mt-6">
-            <p className="text-sm text-gray-600">
-              Zaten hesabınız var mı?{' '}
-              <Link href="/login" className="text-red-600 hover:underline">
-                Giriş Yap
-              </Link>
-            </p>
-          </div>
         </form>
+
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Zaten hesabınız var mı?{' '}
+          <Link href="/login" className="text-red-600 hover:text-red-700">
+            Giriş Yap
+          </Link>
+        </p>
       </div>
     </main>
   );

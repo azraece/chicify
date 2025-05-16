@@ -16,12 +16,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="tr">
-      <body className={`${inter.className} ${alexBrush.variable}`}>{children}</body>
+      <body className="bg-[#FFF5EE] min-h-screen">
+        {children}
+      </body>
     </html>
-  );
+  )
 }

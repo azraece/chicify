@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
-import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   let client;
   try {
-    const { email, password } = await request.json();
+    const { measurements, avatar } = await request.json();
     
     if (!process.env.MONGODB_URI) {
       throw new Error('MongoDB bağlantı bilgisi eksik');
@@ -23,31 +22,23 @@ export async function POST(request: Request) {
     });
 
     const db = client.db();
-    const user = await db.collection('users').findOne({ email });
-    console.log('Bulunan kullanıcı:', user);
-
-    if (!user) {
-      return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 });
-    }
-
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      return NextResponse.json({ error: 'Geçersiz şifre' }, { status: 401 });
-    }
+    
+    // Avatar bilgilerini kaydet
+    const result = await db.collection('avatars').insertOne({
+      measurements,
+      avatar,
+      createdAt: new Date()
+    });
 
     return NextResponse.json({
       success: true,
-      redirect: '/profile/avatar',
-      user: {
-        id: user._id,
-        email: user.email,
-        name: user.name || user.firstName
-      }
+      avatarId: result.insertedId
     });
+
   } catch (error: any) {
-    console.error('Giriş hatası detayı:', error);
+    console.error('Avatar kaydetme hatası:', error);
     return NextResponse.json(
-      { error: 'Giriş işlemi başarısız: ' + error.message },
+      { error: 'Avatar kaydedilemedi: ' + error.message },
       { status: 500 }
     );
   } finally {
