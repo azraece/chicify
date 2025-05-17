@@ -39,7 +39,7 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#FFF1B5]">
+    <main className="min-h-screen flex items-center justify-center bg-[#FFF5EE]">
       <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-lg">
         <h1 className="text-2xl font-bold text-center mb-8">Giriş Yap</h1>
         

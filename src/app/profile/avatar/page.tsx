@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 
 const Avatar3D = dynamic(() => import('@/components/Avatar3D'), {
   ssr: false,
@@ -8,12 +9,12 @@ const Avatar3D = dynamic(() => import('@/components/Avatar3D'), {
 });
 
 export default function AvatarCreator() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
   const [measurements, setMeasurements] = useState({
     bodySize: 'M',
     heightGroup: 'normal',
-    waistSize: 'M',
-    chestSize: 'M',
-    hipsSize: 'M',
+    pantSize: '38',
     skinTone: 'medium',
     hairStyle: 'straight',
     hairColor: 'brown',
@@ -34,6 +35,7 @@ export default function AvatarCreator() {
   };
 
   const handleSave = async () => {
+    setIsLoading(true);
     try {
       const res = await fetch('/api/profile/avatar', {
         method: 'POST',
@@ -41,16 +43,25 @@ export default function AvatarCreator() {
         body: JSON.stringify({ measurements, avatar })
       });
 
-      if (!res.ok) throw new Error('Avatar kaydedilemedi');
+      const data = await res.json();
       
-      alert('Avatar başarıyla kaydedildi!');
+      if (!res.ok) {
+        throw new Error(data.error || 'Avatar kaydedilemedi');
+      }
+      
+      alert('Avatar başarıyla kaydedildi! ID: ' + data.avatarId);
+      // Kullanıcıyı kombinler sayfasına yönlendir
+      router.push('/kombinler');
     } catch (error: any) {
-      alert(error.message);
+      console.error('Kayıt hatası:', error);
+      alert('Hata: ' + error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF1B5] p-8">
+    <div className="min-h-screen bg-[#FFF5EE] p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-8">Avatar Oluşturucu</h1>
         
@@ -102,50 +113,15 @@ export default function AvatarCreator() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Bel Bedeni</label>
+                <label className="block text-sm font-medium text-gray-700">Pantolon Bedeni</label>
                 <select
-                  value={measurements.waistSize}
-                  onChange={(e) => handleMeasurementChange('waistSize', e.target.value)}
+                  value={measurements.pantSize}
+                  onChange={(e) => handleMeasurementChange('pantSize', e.target.value)}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
-                  <option value="XS">XS</option>
-                  <option value="S">S</option>
-                  <option value="M">M</option>
-                  <option value="L">L</option>
-                  <option value="XL">XL</option>
-                  <option value="XXL">XXL</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Göğüs Bedeni</label>
-                <select
-                  value={measurements.chestSize}
-                  onChange={(e) => handleMeasurementChange('chestSize', e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="XS">XS</option>
-                  <option value="S">S</option>
-                  <option value="M">M</option>
-                  <option value="L">L</option>
-                  <option value="XL">XL</option>
-                  <option value="XXL">XXL</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Basen Bedeni</label>
-                <select
-                  value={measurements.hipsSize}
-                  onChange={(e) => handleMeasurementChange('hipsSize', e.target.value)}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="XS">XS</option>
-                  <option value="S">S</option>
-                  <option value="M">M</option>
-                  <option value="L">L</option>
-                  <option value="XL">XL</option>
-                  <option value="XXL">XXL</option>
+                  {Array.from({ length: 7 }, (_, i) => 32 + i * 2).map((size) => (
+                    <option key={size} value={size.toString()}>{size}</option>
+                  ))}
                 </select>
               </div>
 
@@ -234,9 +210,10 @@ export default function AvatarCreator() {
 
               <button
                 onClick={handleSave}
-                className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700"
+                disabled={isLoading}
+                className={`w-full ${isLoading ? 'bg-gray-400' : 'bg-red-600 hover:bg-red-700'} text-white py-2 px-4 rounded-md`}
               >
-                Avatarı Kaydet
+                {isLoading ? 'Kaydediliyor...' : 'Avatarı Kaydet'}
               </button>
             </div>
           </div>

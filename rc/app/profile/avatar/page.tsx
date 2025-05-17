@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 
 const Avatar3D = dynamic(() => import('@/components/Avatar3D'), {
   ssr: false,
@@ -8,6 +9,8 @@ const Avatar3D = dynamic(() => import('@/components/Avatar3D'), {
 });
 
 export default function AvatarCreator() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
   const [measurements, setMeasurements] = useState({
     bodySize: 'M',
     heightGroup: 'normal',
@@ -26,6 +29,26 @@ export default function AvatarCreator() {
     color: 'red'
   });
 
+  // Sayfa yüklendiğinde localStorage'dan verileri kontrol et
+  useEffect(() => {
+    const savedMeasurements = localStorage.getItem('userMeasurements');
+    const savedAvatar = localStorage.getItem('userAvatar');
+    
+    // Eğer daha önce kaydedilmiş veriler varsa
+    if (savedMeasurements && savedAvatar) {
+      // Kullanıcıyı direkt kombinler sayfasına yönlendir
+      router.push('/kombinler');
+    } else {
+      // Eğer varsa localStorage'dan verileri yükle
+      if (savedMeasurements) {
+        setMeasurements(JSON.parse(savedMeasurements));
+      }
+      if (savedAvatar) {
+        setAvatar(JSON.parse(savedAvatar));
+      }
+    }
+  }, [router]);
+
   const handleMeasurementChange = (field: string, value: string | number) => {
     setMeasurements({
       ...measurements,
@@ -34,18 +57,32 @@ export default function AvatarCreator() {
   };
 
   const handleSave = async () => {
+    setIsLoading(true);
     try {
+      // Ölçüleri localStorage'a kaydet
+      localStorage.setItem('userMeasurements', JSON.stringify(measurements));
+      localStorage.setItem('userAvatar', JSON.stringify(avatar));
+      
       const res = await fetch('/api/profile/avatar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ measurements, avatar })
       });
 
-      if (!res.ok) throw new Error('Avatar kaydedilemedi');
+      const data = await res.json();
       
-      alert('Avatar başarıyla kaydedildi!');
+      if (!res.ok) {
+        throw new Error(data.error || 'Avatar kaydedilemedi');
+      }
+      
+      alert('Avatar başarıyla kaydedildi! ID: ' + data.avatarId);
+      // Kullanıcıyı kombinler sayfasına yönlendir
+      router.push('/kombinler');
     } catch (error: any) {
-      alert(error.message);
+      console.error('Kayıt hatası:', error);
+      alert('Hata: ' + error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
