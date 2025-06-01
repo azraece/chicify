@@ -5,6 +5,7 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import Navbar from '@/components/Navbar';
+import Link from 'next/link';
 
 const popularCategories = [
   { name: 'Elbise', icon: '/icons/dress.jpeg' },
@@ -25,6 +26,8 @@ const outfitCombinations = [
   {
     id: 1,
     title: 'Günlük Şık',
+    userId: 'user1',
+    userName: 'Ayşe Yılmaz',
     items: [
       { name: 'Siyah Üst', image: '/resimler/1.jpeg' },
       { name: 'Açık Mavi Jean', image: '/resimler/2.jpeg' },
@@ -35,6 +38,8 @@ const outfitCombinations = [
   {
     id: 2,
     title: 'İş Şıklığı',
+    userId: 'user2',
+    userName: 'Elif Demir',
     items: [
       { name: 'Bordo Üst', image: '/resimler/5.jpeg' },
       { name: 'Lacivert Jean', image: '/resimler/6.jpeg' },
@@ -45,11 +50,37 @@ const outfitCombinations = [
   {
     id: 3,
     title: 'Zarif Kombin',
+    userId: 'user3',
+    userName: 'Zeynep Kaya',
     items: [
       { name: 'Krem Elbise', image: '/resimler/9.jpeg' },
       { name: 'Kahverengi Topuklu', image: '/resimler/99.jpeg' },
       { name: 'Tasarım Çanta', image: '/resimler/1.jpeg' },
       { name: 'Güneş Gözlüğü', image: '/resimler/2.jpeg' }
+    ]
+  },
+  {
+    id: 4,
+    title: 'Spor Elegant',
+    userId: 'user4',
+    userName: 'Merve Öztürk',
+    items: [
+      { name: 'Beyaz Tişört', image: '/resimler/10.jpeg' },
+      { name: 'Siyah Spor Ayakkabı', image: '/resimler/11.jpeg' },
+      { name: 'Denim Ceket', image: '/resimler/12.jpeg' },
+      { name: 'Sırt Çantası', image: '/resimler/13.jpeg' }
+    ]
+  },
+  {
+    id: 5,
+    title: 'Romantik Tarz',
+    userId: 'user5',
+    userName: 'Selin Çelik',
+    items: [
+      { name: 'Pembe Bluz', image: '/resimler/14.jpeg' },
+      { name: 'Beyaz Etek', image: '/resimler/15.jpeg' },
+      { name: 'Nude Topuklu', image: '/resimler/16.jpeg' },
+      { name: 'Mini Çanta', image: '/resimler/17.jpeg' }
     ]
   }
 ];
@@ -142,23 +173,28 @@ export default function Home() {
             <Slider {...settings}>
               {outfitCombinations.map((outfit) => (
                 <div key={outfit.id} className="px-2">
-                  <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
-                    <h3 className="text-xl font-medium mb-4 sm:mb-6">{outfit.title}</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                      {outfit.items.map((item, index) => (
-                        <div key={index} className="flex flex-col items-center">
-                          <div className="w-full aspect-square relative rounded-lg overflow-hidden bg-gray-50">
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-full h-full object-contain"
-                            />
+                  <Link href={`/user/${outfit.userId}`} className="block">
+                    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow cursor-pointer">
+                      <div className="flex justify-between items-center mb-4 sm:mb-6">
+                        <h3 className="text-xl font-medium">{outfit.title}</h3>
+                        <p className="text-sm text-gray-500">@{outfit.userName}</p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                        {outfit.items.map((item, index) => (
+                          <div key={index} className="flex flex-col items-center">
+                            <div className="w-full aspect-square relative rounded-lg overflow-hidden bg-gray-50">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                            <p className="mt-2 text-sm text-gray-600 text-center">{item.name}</p>
                           </div>
-                          <p className="mt-2 text-sm text-gray-600 text-center">{item.name}</p>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 </div>
               ))}
             </Slider>
