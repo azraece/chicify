@@ -116,12 +116,12 @@ export default function Kombinler() {
   });
 
   return (
-    <main className="min-h-screen bg-[#FFF5EE]">
+    <main className="min-h-screen bg-white">
       {/* Header */}
       <header className="fixed top-0 w-full bg-white border-b z-50">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-2xl font-bold text-red-600">Chicify</Link>
+            <Link href="/" className="text-2xl font-bold text-black">Chicify</Link>
             <input 
               type="search" 
               placeholder="Kombinlerde ara..." 
@@ -129,6 +129,24 @@ export default function Kombinler() {
             />
           </div>
           <nav className="flex items-center gap-4">
+            <Link 
+              href="/home" 
+              className="text-gray-700 hover:text-red-600 transition-colors"
+            >
+              Ana Sayfa
+            </Link>
+            <Link 
+              href="/calendar" 
+              className="text-gray-700 hover:text-red-600 transition-colors"
+            >
+              📅 Takvim
+            </Link>
+            <Link 
+              href="/profile-settings" 
+              className="text-gray-700 hover:text-red-600 transition-colors"
+            >
+              Gardırop
+            </Link>
             <Link 
               href="/profile/avatar" 
               className="text-gray-700 hover:text-red-600 transition-colors"

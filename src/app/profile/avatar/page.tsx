@@ -50,8 +50,8 @@ export default function AvatarCreator() {
       }
       
       alert('Avatar başarıyla kaydedildi! ID: ' + data.avatarId);
-      // Kullanıcıyı kombinler sayfasına yönlendir
-      router.push('/kombinler');
+      // Kullanıcıyı home sayfasına yönlendir
+      router.push('/home');
     } catch (error: any) {
       console.error('Kayıt hatası:', error);
       alert('Hata: ' + error.message);
@@ -61,7 +61,7 @@ export default function AvatarCreator() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF5EE] p-8">
+    <div className="min-h-screen bg-white p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-8">Avatar Oluşturucu</h1>
         

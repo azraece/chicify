@@ -8,7 +8,7 @@ export default function Home() {
       <header className="fixed top-0 w-full bg-white border-b z-50">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-red-600">Chicify</h1>
+            <h1 className="text-2xl font-bold text-black">Chicify</h1>
             <input 
               type="search" 
               placeholder="Ara..." 

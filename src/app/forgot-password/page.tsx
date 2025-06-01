@@ -49,7 +49,7 @@ export default function ForgotPassword() {
     <main className="min-h-screen bg-[#FFF5EE] flex items-center justify-center">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-alex-brush text-red-600 mb-2">Chicify</h1>
+          <h1 className="text-4xl font-alex-brush text-black mb-2">Chicify</h1>
           <p className="text-gray-600">Şifrenizi mi unuttunuz?</p>
         </div>
 
