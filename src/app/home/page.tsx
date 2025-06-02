@@ -6,6 +6,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const popularCategories = [
   { name: 'Elbise', icon: '/icons/dress.jpeg' },
@@ -106,6 +107,7 @@ const CategoryIcon = ({ type, icon }: { type?: string; icon?: string }) => {
 
 export default function Home() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const router = useRouter();
   
   const settings = {
     dots: true,
@@ -120,6 +122,14 @@ export default function Home() {
   const handleCategoryClick = (category: any) => {
     if (category.type === 'all') {
       setIsDropdownOpen(!isDropdownOpen);
+    } else if (category.name === 'Etek') {
+      router.push('/etek');
+    } else if (category.name === 'Elbise') {
+      router.push('/elbise');
+    } else if (category.name === 'Pantolon') {
+      router.push('/pantolon');
+    } else if (category.name === 'Bluz') {
+      router.push('/bluz');
     } else {
       // Diğer kategoriler için istediğiniz aksiyonu buraya ekleyebilirsiniz
       console.log('Kategori seçildi:', category.name);
@@ -198,6 +208,82 @@ export default function Home() {
                 </div>
               ))}
             </Slider>
+          </div>
+
+          {/* Popüler Kombinler */}
+          <div className="mb-8">
+            <h3 className="text-xl font-medium mb-4">popüler kombinler</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div 
+                onClick={() => router.push('/user/user1')}
+                className="border-2 border-black rounded-lg p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <div className="aspect-[3/4] bg-gray-100 rounded mb-3 overflow-hidden">
+                  <img
+                    src="/resimler/1.jpeg"
+                    alt="Kombin 1"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <p className="font-medium">Ayşe Yılmaz</p>
+              </div>
+              
+              <div 
+                onClick={() => router.push('/user/user2')}
+                className="border-2 border-black rounded-lg p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <div className="aspect-[3/4] bg-gray-100 rounded mb-3 overflow-hidden">
+                  <img
+                    src="/resimler/2.jpeg"
+                    alt="Kombin 2"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <p className="font-medium">Elif Demir</p>
+              </div>
+              
+              <div 
+                onClick={() => router.push('/user/user3')}
+                className="border-2 border-black rounded-lg p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <div className="aspect-[3/4] bg-gray-100 rounded mb-3 overflow-hidden">
+                  <img
+                    src="/resimler/3.jpeg"
+                    alt="Kombin 3"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <p className="font-medium">Zeynep Kaya</p>
+              </div>
+              
+              <div 
+                onClick={() => router.push('/user/user4')}
+                className="border-2 border-black rounded-lg p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <div className="aspect-[3/4] bg-gray-100 rounded mb-3 overflow-hidden">
+                  <img
+                    src="/resimler/4.jpeg"
+                    alt="Kombin 4"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <p className="font-medium">Merve Öztürk</p>
+              </div>
+              
+              <div 
+                onClick={() => router.push('/user/user5')}
+                className="border-2 border-black rounded-lg p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <div className="aspect-[3/4] bg-gray-100 rounded mb-3 overflow-hidden">
+                  <img
+                    src="/resimler/5.jpeg"
+                    alt="Kombin 5"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <p className="font-medium">Selin Çelik</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

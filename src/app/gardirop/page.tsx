@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function Gardirop() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [visibleBoxes, setVisibleBoxes] = useState(8);
+  const [clothingImages, setClothingImages] = useState<{[key: number]: string}>({});
+  const [activeUploadId, setActiveUploadId] = useState<number | null>(null);
   
   // File input referansı
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -19,16 +21,31 @@ export default function Gardirop() {
 
   // Maksimum kutucuk sayısı (örnek: 16 kutucuk - 4x4)
   const maxBoxes = 16;
-  const wardrobeItems = Array.from({ length: maxBoxes }, (_, index) => ({
-    id: index + 1
-  }));
+
+  // Component mount olduğunda localStorage'dan resimleri yükle
+  useEffect(() => {
+    const savedImages = localStorage.getItem('gardirop-clothing-images');
+    if (savedImages) {
+      try {
+        setClothingImages(JSON.parse(savedImages));
+      } catch (error) {
+        console.error('Kaydedilmiş resimleri yüklerken hata:', error);
+      }
+    }
+  }, []);
+
+  // Resimleri localStorage'a kaydet
+  const saveImagesToStorage = (images: {[key: number]: string}) => {
+    localStorage.setItem('gardirop-clothing-images', JSON.stringify(images));
+  };
 
   const handleCategoryClick = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  // Dosya seçme fonksiyonu
-  const handleAddClothing = () => {
+  // Belirli bir kutucuk için dosya seçme fonksiyonu
+  const handleAddClothing = (clothingId: number) => {
+    setActiveUploadId(clothingId);
     fileInputRef.current?.click();
   };
 
@@ -42,11 +59,41 @@ export default function Gardirop() {
   // Dosya seçildiğinde çalışacak fonksiyon
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      // Burada dosya işleme mantığını ekleyebilirsiniz
-      console.log('Seçilen kıyafet dosyası:', file.name);
-      // Örnek: resmi preview gösterme, sunucuya yükleme vb.
+    if (file && activeUploadId !== null) {
+      // Dosyayı base64'e çevir
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64String = e.target?.result as string;
+        
+        // Yeni resim state'ini güncelle
+        const newClothingImages = {
+          ...clothingImages,
+          [activeUploadId]: base64String
+        };
+        
+        setClothingImages(newClothingImages);
+        saveImagesToStorage(newClothingImages);
+        setActiveUploadId(null);
+      };
+      
+      reader.readAsDataURL(file);
     }
+    
+    // Input'u temizle
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Resmi silme fonksiyonu
+  const handleRemoveImage = (clothingId: number, event: React.MouseEvent) => {
+    event.stopPropagation(); // Butona tıklamayı engelle
+    
+    const newClothingImages = { ...clothingImages };
+    delete newClothingImages[clothingId];
+    
+    setClothingImages(newClothingImages);
+    saveImagesToStorage(newClothingImages);
   };
 
   return (
@@ -107,26 +154,53 @@ export default function Gardirop() {
           onChange={handleFileChange}
           accept="image/*"
           className="hidden"
-          multiple
         />
         
         {/* 4x2 Grid */}
         <div className="grid grid-cols-4 gap-4 mb-8">
-          {wardrobeItems.slice(0, visibleBoxes).map((item) => (
-            <button
-              key={item.id}
-              onClick={handleAddClothing}
-              className="w-full aspect-[3/4] border-2 border-black rounded-lg bg-white flex flex-col items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer"
-            >
-              {/* Yuvarlak artı sembolu */}
-              <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mb-2">
-                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
+          {Array.from({ length: visibleBoxes }, (_, index) => {
+            const clothingId = index + 1;
+            const hasImage = clothingImages[clothingId];
+            
+            return (
+              <div key={clothingId} className="relative group">
+                <button
+                  onClick={() => handleAddClothing(clothingId)}
+                  className="w-full aspect-[3/4] border-2 border-black rounded-lg bg-white flex flex-col items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer overflow-hidden p-2"
+                >
+                  {hasImage ? (
+                    <img
+                      src={hasImage}
+                      alt={`Kıyafet ${clothingId}`}
+                      className="w-full h-full object-contain rounded"
+                    />
+                  ) : (
+                    <>
+                      {/* Yuvarlak artı sembolu */}
+                      <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mb-2">
+                        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </div>
+                      <p className="text-sm text-gray-600">kıyafet ekle</p>
+                    </>
+                  )}
+                </button>
+                
+                {/* Resim varsa silme butonu */}
+                {hasImage && (
+                  <button
+                    onClick={(e) => handleRemoveImage(clothingId, e)}
+                    className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
-              <p className="text-sm text-gray-600">kıyafet ekle</p>
-            </button>
-          ))}
+            );
+          })}
         </div>
 
         {/* Kombin Paylaş Butonu */}

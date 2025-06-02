@@ -1,45 +1,78 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function ProfileSettings() {
-  // Demo veriler
-  const stats = {
-    followers: 156,
-    following: 243
-  };
+  // State'ler
+  const [visibleOutfits, setVisibleOutfits] = useState(6);
+  const [outfitImages, setOutfitImages] = useState<{[key: number]: string}>({});
+  const [activeUploadId, setActiveUploadId] = useState<number | null>(null);
+  const [userStats, setUserStats] = useState({ followers: 0, following: 0 });
+  const [loading, setLoading] = useState(true);
 
   // Kullanıcı bilgileri - gerçek uygulamada auth context'ten gelecek
+  const currentUserId = "675c8b5e123456789012a567"; // Mevcut kullanıcının ID'si
   const userInfo = {
     name: "Azra Ece", // Bu gerçek kullanıcı verilerinden gelecek
     email: "azraece@example.com"
   };
 
   // Maksimum 6 kutucuk
-  const maxOutfits = [
-    { id: 1, image: '/outfit-placeholder.jpg' },
-    { id: 2, image: '/outfit-placeholder.jpg' },
-    { id: 3, image: '/outfit-placeholder.jpg' },
-    { id: 4, image: '/outfit-placeholder.jpg' },
-    { id: 5, image: '/outfit-placeholder.jpg' },
-    { id: 6, image: '/outfit-placeholder.jpg' }
-  ];
-
-  // Görünür olan kutucuk sayısı (başlangıçta 6)
-  const [visibleOutfits, setVisibleOutfits] = useState(6);
+  const maxOutfits = 6;
 
   // File input referansı
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Dosya seçme fonksiyonu
-  const handleAddOutfit = () => {
+  // Component mount olduğunda localStorage'dan resimleri yükle ve kullanıcı verilerini çek
+  useEffect(() => {
+    // Resimleri yükle
+    const savedImages = localStorage.getItem('profile-outfit-images');
+    if (savedImages) {
+      try {
+        setOutfitImages(JSON.parse(savedImages));
+      } catch (error) {
+        console.error('Kaydedilmiş resimleri yüklerken hata:', error);
+      }
+    }
+
+    // Kullanıcı verilerini çek
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(`/api/users/${currentUserId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setUserStats({
+              followers: data.user.followersCount,
+              following: data.user.followingCount
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Kullanıcı verileri yüklenirken hata:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  // Resimleri localStorage'a kaydet
+  const saveImagesToStorage = (images: {[key: number]: string}) => {
+    localStorage.setItem('profile-outfit-images', JSON.stringify(images));
+  };
+
+  // Belirli bir kutucuk için dosya seçme fonksiyonu
+  const handleAddOutfit = (outfitId: number) => {
+    setActiveUploadId(outfitId);
     fileInputRef.current?.click();
   };
 
   // Yeni kutucuk ekleme fonksiyonu
   const handleAddNewBox = () => {
-    if (visibleOutfits < maxOutfits.length) {
+    if (visibleOutfits < maxOutfits) {
       setVisibleOutfits(visibleOutfits + 1);
     }
   };
@@ -47,11 +80,41 @@ export default function ProfileSettings() {
   // Dosya seçildiğinde çalışacak fonksiyon
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      // Burada dosya işleme mantığını ekleyebilirsiniz
-      console.log('Seçilen dosya:', file.name);
-      // Örnek: resmi preview gösterme, sunucuya yükleme vb.
+    if (file && activeUploadId !== null) {
+      // Dosyayı base64'e çevir
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64String = e.target?.result as string;
+        
+        // Yeni resim state'ini güncelle
+        const newOutfitImages = {
+          ...outfitImages,
+          [activeUploadId]: base64String
+        };
+        
+        setOutfitImages(newOutfitImages);
+        saveImagesToStorage(newOutfitImages);
+        setActiveUploadId(null);
+      };
+      
+      reader.readAsDataURL(file);
     }
+    
+    // Input'u temizle
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Resmi silme fonksiyonu
+  const handleRemoveImage = (outfitId: number, event: React.MouseEvent) => {
+    event.stopPropagation(); // Butona tıklamayı engelle
+    
+    const newOutfitImages = { ...outfitImages };
+    delete newOutfitImages[outfitId];
+    
+    setOutfitImages(newOutfitImages);
+    saveImagesToStorage(newOutfitImages);
   };
 
   return (
@@ -65,12 +128,6 @@ export default function ProfileSettings() {
             </Link>
             <div className="flex items-center space-x-4">
               <Link href="/gardirop" className="text-lg font-medium hover:text-red-600 transition-colors">gardırop</Link>
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-white border-2 border-black rounded flex items-center justify-center">
-                  <span className="text-black text-xs font-bold">AI</span>
-                </div>
-                <span className="text-lg font-medium">chicify ai</span>
-              </div>
             </div>
           </div>
         </div>
@@ -102,7 +159,7 @@ export default function ProfileSettings() {
               </Link>
               
               {/* Dinamik Artı Sembolü */}
-              {visibleOutfits < maxOutfits.length && (
+              {visibleOutfits < maxOutfits && (
                 <div className="flex justify-center mt-6">
                   <button
                     onClick={handleAddNewBox}
@@ -123,11 +180,11 @@ export default function ProfileSettings() {
             <div className="flex items-center space-x-8 mb-8">
               <div className="flex space-x-12">
                 <div className="text-center">
-                  <div className="text-2xl font-bold">{stats.followers}</div>
+                  <div className="text-2xl font-bold">{userStats.followers}</div>
                   <div className="text-gray-600">takipçi</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold">{stats.following}</div>
+                  <div className="text-2xl font-bold">{userStats.following}</div>
                   <div className="text-gray-600">takip</div>
                 </div>
               </div>
@@ -152,27 +209,54 @@ export default function ProfileSettings() {
                 onChange={handleFileChange}
                 accept="image/*"
                 className="hidden"
-                multiple
               />
               
               <div className="relative">
                 {/* Kombin kutucukları - 2 satır 3 sütun */}
                 <div className="grid grid-cols-3 gap-4">
-                  {maxOutfits.slice(0, visibleOutfits).map((outfit, index) => (
-                    <button
-                      key={outfit.id}
-                      onClick={handleAddOutfit}
-                      className="w-full aspect-[3/4] border-2 border-black rounded-lg bg-white flex flex-col items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer"
-                    >
-                      {/* Yuvarlak artı sembolu */}
-                      <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mb-2">
-                        <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
+                  {Array.from({ length: visibleOutfits }, (_, index) => {
+                    const outfitId = index + 1;
+                    const hasImage = outfitImages[outfitId];
+                    
+                    return (
+                      <div key={outfitId} className="relative group">
+                        <button
+                          onClick={() => handleAddOutfit(outfitId)}
+                          className="w-full aspect-[3/4] border-2 border-black rounded-lg bg-white flex flex-col items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer overflow-hidden p-2"
+                        >
+                          {hasImage ? (
+                            <img
+                              src={hasImage}
+                              alt={`Kombin ${outfitId}`}
+                              className="w-full h-full object-contain rounded"
+                            />
+                          ) : (
+                            <>
+                              {/* Yuvarlak artı sembolu */}
+                              <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center mb-2">
+                                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                              </div>
+                              <p className="text-sm text-gray-600">kombin ekle</p>
+                            </>
+                          )}
+                        </button>
+                        
+                        {/* Resim varsa silme butonu */}
+                        {hasImage && (
+                          <button
+                            onClick={(e) => handleRemoveImage(outfitId, e)}
+                            className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
                       </div>
-                      <p className="text-sm text-gray-600">kombin ekle</p>
-                    </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>

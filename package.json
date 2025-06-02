@@ -23,6 +23,7 @@
     "mongoose": "^8.14.2",
     "next": "15.3.2",
     "nodemailer": "^7.0.3",
+    "openai": "^5.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-slick": "^0.30.3",
