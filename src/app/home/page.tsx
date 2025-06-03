@@ -7,6 +7,7 @@ import 'slick-carousel/slick/slick-theme.css';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import LikeButton from '@/components/LikeButton';
 
 const popularCategories = [
   { name: 'Elbise', icon: '/icons/dress.jpeg' },
@@ -25,9 +26,9 @@ const allCategories = [
 
 const outfitCombinations = [
   {
-    id: 1,
+    id: 'slider-outfit-1',
     title: 'Günlük Şık',
-    userId: 'user1',
+    userId: '675c8b5e123456789012a568', // user1 ObjectId
     userName: 'Ayşe Yılmaz',
     items: [
       { name: 'Siyah Üst', image: '/resimler/1.jpeg' },
@@ -37,9 +38,9 @@ const outfitCombinations = [
     ]
   },
   {
-    id: 2,
+    id: 'slider-outfit-2',
     title: 'İş Şıklığı',
-    userId: 'user2',
+    userId: '675c8b5e123456789012a569', // user2 ObjectId
     userName: 'Elif Demir',
     items: [
       { name: 'Bordo Üst', image: '/resimler/5.jpeg' },
@@ -49,9 +50,9 @@ const outfitCombinations = [
     ]
   },
   {
-    id: 3,
+    id: 'slider-outfit-3',
     title: 'Zarif Kombin',
-    userId: 'user3',
+    userId: '675c8b5e123456789012a570', // user3 ObjectId
     userName: 'Zeynep Kaya',
     items: [
       { name: 'Krem Elbise', image: '/resimler/9.jpeg' },
@@ -61,9 +62,9 @@ const outfitCombinations = [
     ]
   },
   {
-    id: 4,
+    id: 'slider-outfit-4',
     title: 'Spor Elegant',
-    userId: 'user4',
+    userId: '675c8b5e123456789012a571', // user4 ObjectId
     userName: 'Merve Öztürk',
     items: [
       { name: 'Beyaz Tişört', image: '/resimler/10.jpeg' },
@@ -73,9 +74,9 @@ const outfitCombinations = [
     ]
   },
   {
-    id: 5,
+    id: 'slider-outfit-5',
     title: 'Romantik Tarz',
-    userId: 'user5',
+    userId: '675c8b5e123456789012a572', // user5 ObjectId
     userName: 'Selin Çelik',
     items: [
       { name: 'Pembe Bluz', image: '/resimler/14.jpeg' },
@@ -109,6 +110,53 @@ export default function Home() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
   
+  // Demo: Gerçek uygulamada bu auth context'ten gelecek
+  const currentUserId = "675c8b5e123456789012a567"; // Mevcut kullanıcının ID'si
+
+  // Demo outfit verileri
+  const demoOutfits = [
+    {
+      id: 'demo-outfit-1',
+      image: '/resimler/1.jpeg',
+      title: 'Kombin 1',
+      userName: 'Ayşe Yılmaz',
+      userId: '675c8b5e123456789012a568', // user1
+      routePath: '/user/user1'
+    },
+    {
+      id: 'demo-outfit-2', 
+      image: '/resimler/2.jpeg',
+      title: 'Kombin 2',
+      userName: 'Elif Demir',
+      userId: '675c8b5e123456789012a569', // user2
+      routePath: '/user/user2'
+    },
+    {
+      id: 'demo-outfit-3',
+      image: '/resimler/3.jpeg', 
+      title: 'Kombin 3',
+      userName: 'Zeynep Kaya',
+      userId: '675c8b5e123456789012a570', // user3
+      routePath: '/user/user3'
+    },
+    {
+      id: 'demo-outfit-4',
+      image: '/resimler/4.jpeg',
+      title: 'Kombin 4', 
+      userName: 'Merve Öztürk',
+      userId: '675c8b5e123456789012a571', // user4
+      routePath: '/user/user4'
+    },
+    {
+      id: 'demo-outfit-5',
+      image: '/resimler/5.jpeg',
+      title: 'Kombin 5',
+      userName: 'Selin Çelik', 
+      userId: '675c8b5e123456789012a572', // user5
+      routePath: '/user/user5'
+    }
+  ];
+
   const settings = {
     dots: true,
     infinite: true,
@@ -183,8 +231,19 @@ export default function Home() {
             <Slider {...settings}>
               {outfitCombinations.map((outfit) => (
                 <div key={outfit.id} className="px-2">
-                  <Link href={`/user/${outfit.userId}`} className="block">
-                    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow cursor-pointer">
+                  <Link href={`/user/${outfit.userId === '675c8b5e123456789012a568' ? 'user1' : 
+                    outfit.userId === '675c8b5e123456789012a569' ? 'user2' :
+                    outfit.userId === '675c8b5e123456789012a570' ? 'user3' :
+                    outfit.userId === '675c8b5e123456789012a571' ? 'user4' : 'user5'}`} className="block">
+                    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow cursor-pointer relative">
+                      {/* Like Button - Slider kartları için sağ üst köşe */}
+                      <LikeButton
+                        currentUserId={currentUserId}
+                        outfitId={outfit.id}
+                        outfitOwnerId={outfit.userId}
+                        className="top-2 right-2 bottom-auto left-auto" // Sağ üst köşe
+                      />
+                      
                       <div className="flex justify-between items-center mb-4 sm:mb-6">
                         <h3 className="text-xl font-medium">{outfit.title}</h3>
                         <p className="text-sm text-gray-500">@{outfit.userName}</p>
@@ -214,75 +273,30 @@ export default function Home() {
           <div className="mb-8">
             <h3 className="text-xl font-medium mb-4">popüler kombinler</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div 
-                onClick={() => router.push('/user/user1')}
-                className="border-2 border-black rounded-lg p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <div className="aspect-[3/4] bg-gray-100 rounded mb-3 overflow-hidden">
-                  <img
-                    src="/resimler/1.jpeg"
-                    alt="Kombin 1"
-                    className="w-full h-full object-contain"
-                  />
+              {demoOutfits.map((outfit) => (
+                <div 
+                  key={outfit.id}
+                  onClick={() => router.push(outfit.routePath)}
+                  className="border-2 border-black rounded-lg p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer relative"
+                >
+                  <div className="aspect-[3/4] bg-gray-100 rounded mb-3 overflow-hidden relative">
+                    <img
+                      src={outfit.image}
+                      alt={outfit.title}
+                      className="w-full h-full object-contain"
+                    />
+                    
+                    {/* Like Button - Sol alt köşe */}
+                    <LikeButton
+                      currentUserId={currentUserId}
+                      outfitId={outfit.id}
+                      outfitOwnerId={outfit.userId}
+                      className="bottom-1 left-1" // Ana sayfada biraz daha içerde
+                    />
+                  </div>
+                  <p className="font-medium">{outfit.userName}</p>
                 </div>
-                <p className="font-medium">Ayşe Yılmaz</p>
-              </div>
-              
-              <div 
-                onClick={() => router.push('/user/user2')}
-                className="border-2 border-black rounded-lg p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <div className="aspect-[3/4] bg-gray-100 rounded mb-3 overflow-hidden">
-                  <img
-                    src="/resimler/2.jpeg"
-                    alt="Kombin 2"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <p className="font-medium">Elif Demir</p>
-              </div>
-              
-              <div 
-                onClick={() => router.push('/user/user3')}
-                className="border-2 border-black rounded-lg p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <div className="aspect-[3/4] bg-gray-100 rounded mb-3 overflow-hidden">
-                  <img
-                    src="/resimler/3.jpeg"
-                    alt="Kombin 3"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <p className="font-medium">Zeynep Kaya</p>
-              </div>
-              
-              <div 
-                onClick={() => router.push('/user/user4')}
-                className="border-2 border-black rounded-lg p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <div className="aspect-[3/4] bg-gray-100 rounded mb-3 overflow-hidden">
-                  <img
-                    src="/resimler/4.jpeg"
-                    alt="Kombin 4"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <p className="font-medium">Merve Öztürk</p>
-              </div>
-              
-              <div 
-                onClick={() => router.push('/user/user5')}
-                className="border-2 border-black rounded-lg p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <div className="aspect-[3/4] bg-gray-100 rounded mb-3 overflow-hidden">
-                  <img
-                    src="/resimler/5.jpeg"
-                    alt="Kombin 5"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <p className="font-medium">Selin Çelik</p>
-              </div>
+              ))}
             </div>
           </div>
         </div>

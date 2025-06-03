@@ -2,12 +2,14 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
+import FollowingModal from '@/components/FollowingModal';
 
 export default function ProfileSettings() {
   // State'ler
   const [visibleOutfits, setVisibleOutfits] = useState(6);
   const [outfitImages, setOutfitImages] = useState<{[key: number]: string}>({});
   const [activeUploadId, setActiveUploadId] = useState<number | null>(null);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [userStats, setUserStats] = useState({ followers: 0, following: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -183,9 +185,9 @@ export default function ProfileSettings() {
                   <div className="text-2xl font-bold">{userStats.followers}</div>
                   <div className="text-gray-600">takipçi</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">{userStats.following}</div>
-                  <div className="text-gray-600">takip</div>
+                <div className="text-center cursor-pointer" onClick={() => setShowFollowingModal(true)}>
+                  <div className="text-2xl font-bold hover:text-blue-600 transition-colors">{userStats.following}</div>
+                  <div className="text-gray-600 hover:text-blue-500 transition-colors">takip</div>
                 </div>
               </div>
 
@@ -263,6 +265,13 @@ export default function ProfileSettings() {
           </div>
         </div>
       </div>
+
+      {/* Following Modal */}
+      <FollowingModal
+        isOpen={showFollowingModal}
+        onClose={() => setShowFollowingModal(false)}
+        userId={currentUserId}
+      />
     </div>
   );
 } 

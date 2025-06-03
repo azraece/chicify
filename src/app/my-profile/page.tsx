@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import FollowingModal from '@/components/FollowingModal';
 
 interface User {
   _id: string;
@@ -24,6 +25,7 @@ export default function MyProfile() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -225,9 +227,9 @@ export default function MyProfile() {
                 <div className="text-3xl font-bold text-black">{user.followersCount}</div>
                 <div className="text-gray-600 font-medium">Takipçi</div>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-black">{user.followingCount}</div>
-                <div className="text-gray-600 font-medium">Takip Edilen</div>
+              <div className="text-center cursor-pointer" onClick={() => setShowFollowingModal(true)}>
+                <div className="text-3xl font-bold text-black hover:text-blue-600 transition-colors">{user.followingCount}</div>
+                <div className="text-gray-600 font-medium hover:text-blue-500 transition-colors">Takip Edilen</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-purple-600">127</div>
@@ -296,6 +298,13 @@ export default function MyProfile() {
           </div>
         </div>
       </div>
+
+      {/* Following Modal */}
+      <FollowingModal
+        isOpen={showFollowingModal}
+        onClose={() => setShowFollowingModal(false)}
+        userId={user?._id || ''}
+      />
     </div>
   );
 } 

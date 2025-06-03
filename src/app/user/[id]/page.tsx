@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useFollow } from '@/hooks/useFollow';
+import FollowingModal from '@/components/FollowingModal';
+import LikeButton from '@/components/LikeButton';
 
 interface UserData {
   _id: string;
@@ -15,26 +17,30 @@ interface UserData {
   createdAt: string;
 }
 
+interface Outfit {
+  _id: string;
+  userId: string;
+  title: string;
+  imageUrl: string;
+  tags: string[];
+  createdAt: string;
+  isPublic: boolean;
+}
+
 export default function UserProfile() {
   const params = useParams();
   const userId = params.id as string;
   
   // State for user data
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [loading, setLoading] = useState(true);
+  const [outfitsLoading, setOutfitsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
   
   // Demo: Gerçek uygulamada bu auth context'ten gelecek
   const currentUserId = "675c8b5e123456789012a567"; // Mevcut kullanıcının ID'si
-
-  // Demo kombinler (gerçek uygulamada da API'den gelecek)
-  const demoData = {
-    'user1': { combinations: [{ id: 1, image: '/resimler/1.jpeg' }, { id: 2, image: '/resimler/3.jpeg' }, { id: 3, image: '/resimler/5.jpeg' }] },
-    'user2': { combinations: [{ id: 1, image: '/resimler/2.jpeg' }, { id: 2, image: '/resimler/4.jpeg' }, { id: 3, image: '/resimler/6.jpeg' }] },
-    'user3': { combinations: [{ id: 1, image: '/resimler/7.jpeg' }, { id: 2, image: '/resimler/8.jpeg' }, { id: 3, image: '/resimler/9.jpeg' }] },
-    'user4': { combinations: [{ id: 1, image: '/resimler/10.jpeg' }, { id: 2, image: '/resimler/11.jpeg' }, { id: 3, image: '/resimler/12.jpeg' }] },
-    'user5': { combinations: [{ id: 1, image: '/resimler/14.jpeg' }, { id: 2, image: '/resimler/15.jpeg' }, { id: 3, image: '/resimler/16.jpeg' }] }
-  };
 
   // User ID'yi gerçek ObjectId'ye map etme
   const userIdMapping = {
@@ -71,6 +77,25 @@ export default function UserProfile() {
     }
   };
 
+  // Kullanıcının kombinlerini çek
+  const fetchOutfits = async () => {
+    try {
+      setOutfitsLoading(true);
+      const response = await fetch(`/api/outfits/${realUserId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setOutfits(data.outfits);
+        }
+      }
+    } catch (err) {
+      console.error('Kombinler çekilirken hata:', err);
+    } finally {
+      setOutfitsLoading(false);
+    }
+  };
+
   // Follow hook'unu gerçek ObjectId ile kullan - callback ile takipçi sayılarını yenile
   const { isFollowing, isLoading: followLoading, error: followError, toggleFollow } = useFollow(
     currentUserId, 
@@ -81,6 +106,7 @@ export default function UserProfile() {
   useEffect(() => {
     if (realUserId) {
       fetchUserData();
+      fetchOutfits();
     }
   }, [realUserId]);
 
@@ -110,7 +136,6 @@ export default function UserProfile() {
   };
 
   const buttonProps = getFollowButtonProps();
-  const combinations = demoData[userId as keyof typeof demoData]?.combinations || [];
 
   // Loading state
   if (loading) {
@@ -171,9 +196,9 @@ export default function UserProfile() {
                   <div className="text-2xl font-bold">{userData.followersCount}</div>
                   <div className="text-gray-600">takipçi</div>
                 </div>
-                <div className="text-left">
-                  <div className="text-2xl font-bold">{userData.followingCount}</div>
-                  <div className="text-gray-600">takip</div>
+                <div className="text-left cursor-pointer" onClick={() => setShowFollowingModal(true)}>
+                  <div className="text-2xl font-bold hover:text-blue-600 transition-colors">{userData.followingCount}</div>
+                  <div className="text-gray-600 hover:text-blue-500 transition-colors">takip</div>
                 </div>
               </div>
               
@@ -212,25 +237,88 @@ export default function UserProfile() {
             <div className="mt-16">
               <h3 className="text-xl font-medium mb-6">kombinler</h3>
               
-              {/* Kombin kutucukları - profil settings gibi */}
-              <div className="grid grid-cols-3 gap-4">
-                {combinations.map((combo) => (
-                  <div
-                    key={combo.id}
-                    className="w-full aspect-[3/4] border-2 border-black rounded-lg bg-white flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer overflow-hidden"
-                  >
-                    <img
-                      src={combo.image}
-                      alt={`Kombin ${combo.id}`}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                ))}
-              </div>
+              {/* Loading state for outfits */}
+              {outfitsLoading && (
+                <div className="grid grid-cols-3 gap-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="w-full aspect-[3/4] border-2 border-gray-200 rounded-lg bg-gray-100 animate-pulse"></div>
+                  ))}
+                </div>
+              )}
+
+              {/* Kombin kutucukları */}
+              {!outfitsLoading && (
+                <div className="grid grid-cols-3 gap-4">
+                  {outfits.length > 0 ? (
+                    outfits.slice(0, 6).map((outfit) => (
+                      <div
+                        key={outfit._id}
+                        className="w-full aspect-[3/4] border-2 border-black rounded-lg bg-white flex items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer overflow-hidden group relative"
+                      >
+                        <img
+                          src={outfit.imageUrl}
+                          alt={outfit.title}
+                          className="w-full h-full object-cover"
+                        />
+
+                        {/* Like Button - Sol alt köşe */}
+                        <LikeButton
+                          currentUserId={currentUserId}
+                          outfitId={outfit._id}
+                          outfitOwnerId={outfit.userId}
+                        />
+                        
+                        {/* Hover overlay with outfit title */}
+                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
+                          <div className="p-3 text-white">
+                            <p className="font-medium text-sm">{outfit.title}</p>
+                            {outfit.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {outfit.tags.slice(0, 2).map((tag) => (
+                                  <span key={tag} className="px-2 py-1 bg-white bg-opacity-20 rounded-full text-xs">
+                                    #{tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-3 text-center py-12">
+                      <div className="text-gray-400">
+                        <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center">
+                          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                        </div>
+                        <p className="text-gray-500">Henüz kombin eklenmemiş</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Daha fazla kombin varsa "Daha Fazla" butonu */}
+              {outfits.length > 6 && (
+                <div className="text-center mt-6">
+                  <button className="px-6 py-2 border-2 border-black bg-white rounded-full text-black font-medium hover:bg-gray-50 transition-colors">
+                    Tüm Kombinleri Gör ({outfits.length - 6} daha)
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Following Modal */}
+      <FollowingModal
+        isOpen={showFollowingModal}
+        onClose={() => setShowFollowingModal(false)}
+        userId={realUserId}
+      />
     </div>
   );
 } 
